@@ -1,0 +1,58 @@
+---
+- name: Install dependencies
+  yum:
+    name: httpd
+    state: present
+
+- name: Download Mediawiki
+  get_url:
+    url: "{{ download_url }}"
+    dest: ""/home/root/{{ filename }}.tgz"
+
+- name: Download GPG signature for Mediawiki tarball
+  get_url:
+    url: "http://releases.wikimedia.org/mediawiki/1.34/{{ filename }}.tar.gz.sig"
+    dest: ""/home/root/{{ filename }}.tgz.sig"
+
+- name: Verify Mediawiki tarball integrity
+  command: gpg --verify "/home/root/{{ filename }}.tgz.sig" "/home/root/{{ filename }}.tgz"
+
+- name: Unarchive Mediawiki
+  unarchive:
+    src: ""/home/root/{{ filename }}.tgz"
+    dest: /var/www
+    owner: "{{ wiki.user }}"
+    group: "{{ wiki.user }}"
+
+- name: Setup Mediawiki symlink
+  file:
+    path: "/var/www/{{ filename }}"
+    src: /var/www/mediawiki
+    owner: "{{ wiki.user }}"
+    group: "{{ wiki.user }}"
+    state: link
+    force: yes
+
+- name: Insert/update configuration block in /etc/httpd/conf/httpd.conf
+  blockinfile:
+    path: /etc/httpd/conf/httpd.conf
+    block: |
+      DocumentRoot "/var/www"
+      <Directory "/var/www">
+         Options FollowSymLinks
+         AllowOverride None
+      </Directory>
+      DirectoryIndex index.html index.html.var index.php
+  notify:
+    - restart httpd
+
+- name: Get selinux
+  command: "getenforce"
+  register: result
+
+- name: Correct selinux configuration
+  command: "{{ item }}"
+  with_items:
+    - restorecon -FR "/var/www/{{ filename }}/"
+    - restorecon -FR /var/www/mediawiki
+  when: result == enforcing
