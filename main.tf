@@ -23,7 +23,7 @@ variable "ssh_pub_key_path" {
 }
 
 provider "google" {
- credentials = "${file(var.gcp_credentials_path)}"
+ credentials = file(var.gcp_credentials_path)
  project     = "${var.project_name}"
  region      = "${var.region}"
 }

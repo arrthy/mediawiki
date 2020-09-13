@@ -17,8 +17,8 @@ resource "google_compute_firewall" "default" {
 
 // Define VM resource
 resource "google_compute_instance" "vm_instance" {
-    name         = "mediawiki_vm"
-    machine_type = "e2-medium"
+    name         = "mediawiki-vm"
+    machine_type = "f1-micro"
     zone         = "${var.zone}"
 
     boot_disk {
@@ -40,5 +40,5 @@ resource "google_compute_instance" "vm_instance" {
 
 // Expose IP of VM
 output "ip" {
- value = "${google_compute_instance.instance_with_ip.network_interface.0.access_config.0.nat_ip}"
+ value = "${google_compute_instance.vm_instance.network_interface.0.access_config.0.nat_ip}"
 }
