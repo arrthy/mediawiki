@@ -3,13 +3,10 @@ resource "google_compute_firewall" "default" {
  network = "default"
 
  allow {
-   protocol = "icmp"
+   protocol = "tcp"
+   ports    = ["80" ,"443"]
  }
 
- allow {
-   protocol = "tcp"
-   ports    = ["80"]
- }
  source_ranges = ["0.0.0.0/0"]
  source_tags = ["web"]
 
