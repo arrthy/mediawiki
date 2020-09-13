@@ -45,4 +45,5 @@ Follow the below steps to spin a CentOS instance in GCP:
 
 
 *In order to get the IP addresses of the multiple instances, you need to check the GCP console
-or you can declare a range of static IPs which will be assigned to the instances while creation*
+or you can declare a range of static IPs which will be assigned to the instances while creation 
+and configure locdbalaning module in terraform*
