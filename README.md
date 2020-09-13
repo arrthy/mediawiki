@@ -2,12 +2,12 @@
 
 This repository contains files which will help in spinning GCP server automatically and install Mediawiki application on it.
 
-##Tools Used:
+## Tools Used:
 
 * Terraform for Infrastructure setup
 * Ansible for Configuration Management
 
-##Infrastructure setup:
+## Infrastructure setup:
 
 Follow the below steps to spin a CentOS instance in GCP:
 
@@ -20,10 +20,29 @@ Follow the below steps to spin a CentOS instance in GCP:
 * The output will contain IP address of the spinned instance
 
 
-##Configuration Management:
+## Configuration Management:
 
 Follow the below steps to spin a CentOS instance in GCP:
 
 * Clone the repository
 * Update the hosts file with the instance's IP address
 * Execute the playbook by ansible-playbook -i hosts playbook.yml -u <username> --private-key <path to user's private key file>
+
+## Infrastructure scalaility considerations
+
+* If you wish to create multiple GCP instances, add a variable node_count in *main.tf* file
+
+`variable "node_count" {
+  type = number
+}`
+
+* Define the variable in *variable.tfvars*
+* Modify the vm instance creation part in *vm.tf* file
+
+`resource "google_compute_instance" "vm_instance" {
+    count        = var.node_count
+    name         = "mediawiki-vm-${count.index}"`
+
+
+*In order to get the IP addresses of the multiple instances, you need to check the GCP console
+or you can declare a range of static IPs which will be assigned to the instances while creation*
