@@ -7,29 +7,47 @@
 - name: Download Mediawiki
   get_url:
     url: "{{ download_url }}"
-    dest: "/home/root/{{ filename }}.tgz"
+    dest: "/tmp/{{ filename }}.tgz"
+    mode: 0744
 
 - name: Download GPG signature for Mediawiki tarball
   get_url:
     url: "http://releases.wikimedia.org/mediawiki/1.34/{{ filename }}.tar.gz.sig"
-    dest: "/home/root/{{ filename }}.tgz.sig"
+    dest: "/tmp/{{ filename }}.tgz.sig"
+
+- name: Download GPG keys
+  command: gpg --recv-key 9D3BB7B0
 
 - name: Verify Mediawiki tarball integrity
-  command: gpg --verify "/home/root/{{ filename }}.tgz.sig" "/home/root/{{ filename }}.tgz"
+  command: gpg --verify "/tmp/{{ filename }}.tgz.sig" "/tmp/{{ filename }}.tgz"
 
 - name: Unarchive Mediawiki
   unarchive:
-    src: "/home/root/{{ filename }}.tgz"
-    dest: /var/www
+    src: "/tmp/{{ filename }}.tgz"
+    dest: /tmp
+    copy: no
     owner: "{{ wiki.user }}"
-    group: "{{ wiki.user }}"
+    group: "{{ wiki.group }}"
+
+- name: Move Mediawiki to web dir
+  command: mv "/tmp/{{ filename }}" /var/www
+
+- name: Modify permission for Mediawiki dir
+  file:
+    path: "/var/www/{{ filename }}"
+    state: directory
+    owner: "{{ wiki.user }}"
+    group: "{{ wiki.group }}"
+    mode: 0775
+    recurse: yes
 
 - name: Setup Mediawiki symlink
   file:
-    path: "/var/www/{{ filename }}"
-    src: /var/www/mediawiki
+    path: /var/www/mediawiki
+    src: "/var/www/{{ filename }}"
     owner: "{{ wiki.user }}"
-    group: "{{ wiki.user }}"
+    group: "{{ wiki.group }}"
+    mode: 0775
     state: link
     force: yes
 
@@ -37,8 +55,8 @@
   blockinfile:
     path: /etc/httpd/conf/httpd.conf
     block: |
-      DocumentRoot "/var/www"
-      <Directory "/var/www">
+      DocumentRoot "/var/www/mediawiki"
+      <Directory "/var/www/mediawiki">
          Options FollowSymLinks
          AllowOverride None
       </Directory>
@@ -55,4 +73,4 @@
   with_items:
     - restorecon -FR "/var/www/{{ filename }}/"
     - restorecon -FR /var/www/mediawiki
-  when: result == enforcing
+  when: result.stdout == "Enforcing"

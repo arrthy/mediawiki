@@ -1,5 +1,6 @@
 download_url: http://releases.wikimedia.org/mediawiki/1.34/mediawiki-1.34.2.tar.gz
 filename: mediawiki-1.34.2
+user: apache
 wiki:
   user: apache
   group: apache
